@@ -1,5 +1,4 @@
 #线性规划算法库
-from re import I
 from scipy.optimize import linprog
 import numpy as np
 import copy
@@ -74,11 +73,6 @@ def brandBoundLP(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
     else:
         return False
 
-<<<<<<< HEAD
-if __name__=='main':
-    pass
-    pass
-=======
 if __name__=='__main__':
     c=[-40,-90]
     au=[[9,7],[7,20]]
@@ -87,5 +81,4 @@ if __name__=='__main__':
     x1=[0,float('inf')]
     res=brandBoundLP(c,au,bu,b=(x0,x1),putValue=True)
     print(res)
->>>>>>> 7415e95f3c40d61d437336a51f1603a4f4cba05c
 
