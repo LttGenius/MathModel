@@ -6,11 +6,28 @@ import copy
 # linprog(c,Au,Bu,Aeq,Beq,b)
 
 ###########整数规划##############
-#分支定界法
-def brandBoundLP(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False):#返回[最优值，最优解]
+
+#分支定界法#####################################################################
+"""
+Model:
+    Min(Max) CX 
+    S.T.
+        AuX<=Bu
+        AeqX=Beq
+        lb<=X<=ub(b=(lb,ub))
+
+putValue=True:模型是求最大值，会对C进行自动求负
+         False:模型求最小值
+limitT:误差阈值
+"""
+def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False):#返回[最优值，最优解]
+    if putValue:
+        c=copy.deepcopy([-1*i for i in C])
+    else:
+        c=copy.deepcopy(C)
     res=linprog(c,Au,Bu,Aeq,Beq,b)
     optimalValue=res
-    if not res.success:return 
+    if not res.success:return res
     if all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):#判断是否全为整数
         return optimalValue
     limitv=[optimalValue.fun,float('inf')]#值上下界
@@ -71,16 +88,46 @@ def brandBoundLP(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
             optimalValue.fun=-optimalValue.fun
         return optimalValue
     else:
-        return False
+        res.success='False'
+        return res
+#####################################################################################
+
+
+#割平面法#############################################################################
+"""
+
+"""
+def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False):
+    if putValue:
+        C=[-1*i for i in c]
+    else:
+        C=copy.deepcopy(c)
+    res=linprog(C,Au,Bu,Aeq,Beq,b)
+    newb=copy.deepcopy(b)
+    if not res.success:return res#无解
+    """
+    接下来是割平面求最优解
+    """
+    while not all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):
+        """
+        分割平面
+        """
+        
+        res=linprog(C,Au,Bu,Aeq,Beq,newb)
+        if not res.success:return res#规划失败
+    return res
+
+#######################################################################################
 
 
 
 if __name__=='__main__':
-    c=[-40,-90]
-    au=[[9,7],[7,20]]
-    bu=[56,70]
+    c=[-5,-8]
+    au=[[1,1],[5,9]]
+    bu=[6,45]
     x0=[0,float('inf')]
     x1=[0,float('inf')]
-    res=brandBoundLP(c,au,bu,b=(x0,x1),putValue=True)
+    #res=brandBoundLP(c,au,bu,b=(x0,x1),putValue=True)
+    res=linprog(c,au,bu,bounds=(x0,x1))
     print(res)
 
