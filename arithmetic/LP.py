@@ -125,7 +125,7 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,
              [an1,an2,an3,...,0,0,...,onen,bn]
                                               ]
         """
-        position=au.shape[1]+1
+        position=au.shape[1]
     else:#无整数解
         pass
     while not all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):
@@ -142,7 +142,11 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,
              [0,0,...,An,BN1,BN2,BN3,...,Nbn]
                                               ]
         """
-        
+        tempAu=[]
+        tempBu=[]
+        for i in Matrix:
+            for j in i[position:]:
+                tempAu.append(-1*())
         res=linprog(C,au,bu,Aeq,Beq,newb)
         if not res.success:return res#规划失败
     return res
