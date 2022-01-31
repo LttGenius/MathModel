@@ -1,13 +1,33 @@
-#线性规划算法库
+"""
+线性规划算法库
+Arithmetic:
+    Basic:
+        松弛问题线性规划 linprog
+        单纯形法 
+    Integer LP:
+        分支定界法 brandBoundLP
+        割平面法
+"""
 from scipy.optimize import linprog
 import sympy
 import numpy as np
 import copy
-#基础线性规划为
+#松弛线性规划
 # linprog(c,Au,Bu,Aeq,Beq,b)
-###########整数规划##############
 
-#分支定界法#####################################################################
+#单纯性法
+def simplexMethod(c,Au=None,Bu=None,Aeq=None,Beq=None,Bounds=None,putValue=False,putForm=False):
+    #构建矩阵
+    temp=np.array([])
+    if Au:
+        temp=np.eye(len(Au))
+    simplexMatrix=np.hstack((np.array(Au),temp))
+    if Aeq:
+        temp=np.zeros((len(Aeq),len(Au)))
+    simplexMatrix=np.vstack((simplexMatrix,temp))
+
+###########整数规划##############
+###########分支定界法############
 """
 Model:
     Min(Max) CX 
@@ -90,10 +110,8 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
     else:
         res.success='False'
         return res
-#####################################################################################
 
-
-#割平面法#############################################################################
+###########割平面法###############
 """
 
 """
@@ -166,10 +184,6 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,
         res=linprog(C,au,bu,Aeq,Beq,newb)
         if not res.success:return res#规划失败
     return res
-
-#######################################################################################
-
-
 
 if __name__=='__main__':
     c=[-5,-8]
