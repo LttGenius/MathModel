@@ -89,7 +89,6 @@ def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False):
         return simplexMatrix
     else:
         return [simplexMatrix[0:length,0],simplexMatrix[length,0]]
-            
 
 ###########整数规划##############
 ###########分支定界法############
