@@ -15,14 +15,20 @@ import copy
 #松弛线性规划
 # linprog(c,Au,Bu,Aeq,Beq,b)
 
-#单纯性法
+#单纯形法
 """
 Model:
     Min(Max) cX
     S.T.
         Au<=Bu
     需要保证X>=0
-    Max和Min由参数putValue确认
+    Max和Min由参数putValue确认:当c对应是Max时,putValue应为True,否则为false
+    putForm:True时输出表格,否则只输出x和最优值
+1）当所有非基变量的检验数都小于零，则原问题有唯一最优解；
+2）当所有非基变量的检验数都小于等于零，注意有等于零的检验数，则有无穷多个最优解；
+3）当任意一个大于零的非基变量的检验数，其对应的ajk（求最小比值的分母）都小于等于零时，则原问题有无界解；
+4）添加人工变量后的问题，当所有非基变量的检验数都小于等于零，而基变量中有人工变量时，则原问题无可行解。
+PS:情况1和情况2并未区分，如需分别请将参数putForm设置为True，查看表格分别
 """
 def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False):
     #构建矩阵
@@ -69,7 +75,7 @@ def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False):
         B=simplexMatrix[0:position6,0]/simplexMatrix[0:position6,position[0]]
         B[B<=0]=float('inf')
         if np.all(B==float('inf')):#有无界解
-            return "无界"
+            return [[float('inf') for _ in range(len(c))],[float('inf')]]
         position.append(int(np.argwhere(B==(min(B)))))#查找到主元素位置
         #接下里进行初等行变换
         #将主元素这一行除以主元素
