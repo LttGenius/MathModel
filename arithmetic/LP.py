@@ -81,7 +81,7 @@ def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False):
         #将主元素这一行除以主元素
         B=simplexMatrix[position[1]]=simplexMatrix[position[1]]/simplexMatrix[position[1],position[0]]
         #其余行减去这一行
-        temp=copy.deepcopy(simplexMatrix[position[1]])
+        temp=np.array(simplexMatrix[position[1]])
         for i in range(position6+1):
             simplexMatrix[i]-=simplexMatrix[i,position[0]]*B
         simplexMatrix[position[1]]=temp
@@ -111,9 +111,9 @@ limitT:误差阈值
 """
 def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False):#返回[最优值，最优解]
     if putValue:
-        c=copy.deepcopy([-1*i for i in C])
+        c=np.array([-1*i for i in C])
     else:
-        c=copy.deepcopy(C)
+        c=np.array(C)
     res=linprog(c,Au,Bu,Aeq,Beq,b)
     optimalValue=res
     if not res.success:return res
@@ -130,8 +130,8 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
     limitx=(np.floor(res.x[i]),np.ceil(res.x[i]))#分支
     ####
     #值copy
-    newb0=copy.deepcopy(list(b))
-    newb1=copy.deepcopy(newb0)
+    newb0=np.array(list(b))
+    newb1=np.array(newb0)
     ############
     stack=[]
     stackTop=0
@@ -152,7 +152,7 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
             if all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):#判断是否全为整数
                 if res.fun<limitv[1]:#定界
                     limitv[1]=res.fun
-                    optimalValue=copy.deepcopy(res)
+                    optimalValue=np.array(res)
             else:#有小数，开始分支
                 if res.fun>limitv[1]:#减支
                     continue
@@ -163,7 +163,7 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
                     else:
                         break
                 limitx=(np.floor(res.x[i]),np.ceil(res.x[i]))#分支
-                newTemp=copy.deepcopy(temp)
+                newTemp=np.array(temp)
                 if newTemp[i][0]<limitx[1]:
                     newTemp[i][0]=limitx[1]
                     stack.append(newTemp)
@@ -182,76 +182,40 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
 
 ###########割平面法###############
 """
-
+Model:
+    Min(Max) CX 
+    S.T.
+        AuX<=Bu
+        AeqX=Beq
+        lb<=X<=ub(b=(lb,ub))
+putValue=True:模型是求最大值，会对C进行自动求负
+         False:模型求最小值
+limitT:误差阈值
 """
 def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False):
     ###拷贝###############
     if putValue:
         C=[-1*i for i in c]
     else:
-        C=copy.deepcopy(c)
-    au=copy.deepcopy(Au)
-    bu=copy.deepcopy(Bu)
-    newb=copy.deepcopy(b)
+        C=np.array(c)
+    au=np.array(Au)
+    bu=np.array(Bu)
+    newb=np.array(b)
     ######################
     res=linprog(C,au,bu,Aeq,Beq,newb)
     if not res.success:return res#无解
+    #构建矩阵
+    simplexTable=np.vstack((au,np.eye(len(Au))))
+    simplexTable=np.hstack((simplexTable,res.x.reshape(res.x.shape[0],1)))
+    simplexTable=sympy.Matrix(simplexTable).rref()
+    #更新约束和函数式
+    C=np.append(C,[0 for _ in range(len(Au))])
+    temp=simplexTable
     """
     接下来是割平面求最优解
     """
-    au=np.array(au)
-    bu=np.array(bu)
     while not all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):
-        """
-        分割平面
-        """
-        if au.any():
-            Matrix=np.eye(au.shape[0])
-            Matrix=np.hstack((au,Matrix))
-            Matrix=np.hstack((Matrix,bu.reshape(au.shape[0],1)))
-            """
-            Matrix:
-                [[a11,a12,a13,...,one1,0,0,...,b1]
-                [a21,a22,a23,...,0,one2,0,...,b2]
-                ...
-                ...
-                [an1,an2,an3,...,0,0,...,onen,bn]
-                                                ]
-            """
-            position0=au.shape[1]
-            position1=au.shape[0]
-            C=np.hstack((C,np.zeros(position1)))
-            newb=np.hstack
-        else:#无整数解
-            return res
-        Matrix=np.array((sympy.Matrix(Matrix).rref())[0])
-        """
-        Matrix:
-            [[1,0,0,...,B11,B12,B12,...,Nb1]
-             [0,1,0,...,B21,B22,B23,...,Nb2]
-             ...
-             ...
-             [0,0,...,1,BN1,BN2,BN3,...,Nbn]
-                                              ]
-        """
-        tempAu=[]
-        tempBu=[]
-        for i in Matrix:
-            templist=[]
-            flag=0
-            for j in i[position0:]:
-                if flag == position1:
-                    tempBu.append(-1*(j%1))
-                else:
-                    templist.append(-1*(j%1))
-                flag+=1
-            tempAu.append(templist)
-        a=np.zeros((position1,position1))
-        au=np.hstack((au,a))
-        au=np.vstack((au,np.hstack((np.zeros((position0,position0)),np.array(tempAu)))))
-        bu=np.hstack((bu,np.array(tempBu)))
-        res=linprog(C,au,bu,Aeq,Beq,newb)
-        if not res.success:return res#规划失败
+        pass
     return res
 
 if __name__=='__main__':
@@ -260,8 +224,8 @@ if __name__=='__main__':
     b = [40,30]
     X0_bounds = [0,float('inf')]
     X1_bounds = [0,float('inf')]
-    res=simplexMethod(C,A,b,putValue=True,putForm=True)
-    print(res)
+    res=linprog(C,A,b,bounds=(X0_bounds,X1_bounds))
+    print(type(res.fun))
     
 
 
