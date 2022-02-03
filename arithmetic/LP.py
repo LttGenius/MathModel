@@ -12,6 +12,28 @@ from scipy.optimize import linprog
 import sympy
 import numpy as np
 import copy
+from fractions import Fraction
+#额外函数
+"""
+带精度比较函数
+    需要保证传入为一维
+"""
+def Com_pre(comObject,minOrMax=False,returnValue='value',limitPrecision=1e-5):
+    temp=np.sort(comObject)
+    if minOrMax:
+        temp=temp[::-1]
+    stand=temp[0]
+    flag=0
+    for i in temp:
+        if abs(stand-i)<=limitPrecision:flag+=1
+        else:break
+    if returnValue=='value':
+        return temp[0:flag]
+    elif returnValue=='index':
+        if minOrMax:
+            return np.where(comObject>=temp[flag-1])
+        else:
+            return np.where(comObject<=temp[flag-1])
 #松弛线性规划
 # linprog(c,Au,Bu,Aeq,Beq,b)
 
@@ -152,7 +174,7 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
             if all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):#判断是否全为整数
                 if res.fun<limitv[1]:#定界
                     limitv[1]=res.fun
-                    optimalValue=np.array(res)
+                    optimalValue=res
             else:#有小数，开始分支
                 if res.fun>limitv[1]:#减支
                     continue
@@ -191,13 +213,16 @@ Model:
 putValue=True:模型是求最大值，会对C进行自动求负
          False:模型求最小值
 limitT:误差阈值
+PS:半成品，依然有bug需要完善，部分测试不通过
+    还需完成只有等式约束情况
 """
-def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False):
+def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,putValue=False):
     ###拷贝###############
     if putValue:
         C=[-1*i for i in c]
     else:
         C=np.array(c)
+    xposition=len(c)
     au=np.array(Au)
     bu=np.array(Bu)
     newb=np.array(b)
@@ -208,45 +233,49 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,
     接下来是割平面求最优解
     """
     simplexTable=np.hstack((au,np.eye(len(au))))
+    simplexTable=np.array(sympy.Matrix(simplexTable).rref()[0].tolist())
     simplexTable=np.hstack((simplexTable,res.x.reshape(res.x.shape[0],1)))
-    while not all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):
+    while not all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x[0:xposition]):
         #寻找最小小数行作为添加条件行
         #最简矩阵 保证为二维
         simplexTable=np.array(sympy.Matrix(simplexTable).rref()[0].tolist())
         copySimplexTable=copy.deepcopy(simplexTable)
         simplexTable%=1
         temp=simplexTable[:,-1]
-        position=np.where(temp==np.max(temp))
+        position=Com_pre(temp,minOrMax=True,returnValue='index')#标记1
         #注意temp可能一维可能二维
         temp=copy.deepcopy(simplexTable[position])#保证了temp始终为二维数组
         temp=np.sum(temp,axis=1)#为一维数组
-        temp=np.where(temp==np.min(temp))[0][0]#如果重复取所有中第一个
-        position=position[temp]
+        temp=Com_pre(temp,returnValue='index')[0][0]#如果重复取所有中第一个 #标记2
+        position=position[0][temp]
         #更新约束
-        updateMatrix_newLine=simplexTable[position,:]#一维
-        length=len(C)
+        updateMatrix_newLine=-1*simplexTable[position,:]#一维
         C=np.append(C,[0 for _ in range(len(au))])
         newb=np.vstack((newb,[[0,float('inf')] for _ in range(len(au))]))
         au=-1*simplexTable[position:position+1,0:-1]#只有一个不等式 au此时为2维数组
         bu=-1*simplexTable[position:position+1,-1]
         aeq=copy.deepcopy(copySimplexTable[:,0:-1])
-        aeq=np.delete(aeq,position,axis=0)
         beq=copy.deepcopy(copySimplexTable[:,-1])
         #进行线性规划
         res=linprog(C,au,bu,aeq,beq,newb)
         #更新矩阵
         simplexTable=np.vstack((copySimplexTable,updateMatrix_newLine))
+        temp=[[0] for _ in range(len(simplexTable))]
+        temp[-1]=[1]
+        simplexTable=np.hstack((simplexTable,temp)) 
         if not res.success:return res
     return res
 
 if __name__=='__main__':
-    C = [-3,-4] 
-    A = [[2,1],[1,3]]
-    bu = [40,30]
+    C = [-5,-8] 
+    A = [[1,1],[5,9]]
+    bu = [6,45]
     X0_bounds = [0,float('inf')]
     X1_bounds = [0,float('inf')]
+    #test=np.array([1.33333,1.33333,2,3,4])
+    #res=Com_pre(test)
     res=cuttingPlaneApproach(C,A,bu,b=(X0_bounds,X1_bounds))
-    print(type(res.fun))
+    print(res)
     
 
 
