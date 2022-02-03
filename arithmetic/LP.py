@@ -207,36 +207,35 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,
     """
     接下来是割平面求最优解
     """
+    simplexTable=np.hstack((au,np.eye(len(au))))
+    simplexTable=np.hstack((simplexTable,res.x.reshape(res.x.shape[0],1)))
     while not all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x):
         #寻找最小小数行作为添加条件行
-        #构建矩阵 保证为二维
-        simplexTable=np.hstack((au,np.eye(len(au))))
-        simplexTable=np.hstack((simplexTable,res.x.reshape(res.x.shape[0],1)))
+        #最简矩阵 保证为二维
         simplexTable=np.array(sympy.Matrix(simplexTable).rref()[0].tolist())
         copySimplexTable=copy.deepcopy(simplexTable)
         simplexTable%=1
-        """
-        position [列,行]
-        """
         temp=simplexTable[:,-1]
         position=np.where(temp==np.max(temp))
         #注意temp可能一维可能二维
-        temp=copy.deepcopy(simplexTable[position,:])#注意temp可能一维可能二维
-        if len(temp)>1:
-            temp=np.sum(temp,axis=1)
-            t=np.where(temp==np.min(temp))
-            position=position[int(np.where(temp==np.min(temp))[0])]
+        temp=copy.deepcopy(simplexTable[position])#保证了temp始终为二维数组
+        temp=np.sum(temp,axis=1)#为一维数组
+        temp=np.where(temp==np.min(temp))[0][0]#如果重复取所有中第一个
+        position=position[temp]
         #更新约束
+        updateMatrix_newLine=simplexTable[position,:]#一维
         length=len(C)
         C=np.append(C,[0 for _ in range(len(au))])
         newb=np.vstack((newb,[[0,float('inf')] for _ in range(len(au))]))
-        au=-1*simplexTable[position,length:]
-        au=au[0]
-        bu=-1*simplexTable[position,-1]
-        aeq=copySimplexTable[:,0:-1]
-        beq=copySimplexTable[:,-1]
+        au=-1*simplexTable[position:position+1,0:-1]#只有一个不等式 au此时为2维数组
+        bu=-1*simplexTable[position:position+1,-1]
+        aeq=copy.deepcopy(copySimplexTable[:,0:-1])
+        aeq=np.delete(aeq,position,axis=0)
+        beq=copy.deepcopy(copySimplexTable[:,-1])
         #进行线性规划
         res=linprog(C,au,bu,aeq,beq,newb)
+        #更新矩阵
+        simplexTable=np.vstack((copySimplexTable,updateMatrix_newLine))
         if not res.success:return res
     return res
 
