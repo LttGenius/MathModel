@@ -392,6 +392,7 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,
     if putValue:
         res.fun*=-1
     return res
+
 ##########匈牙利法#########
 """
 Model:
@@ -465,6 +466,7 @@ def hungarianAlgorithm(c)->'str':
         C=np.array(c)
         matrixShape=matrixShape[0]
     C=C.flatten().tolist()
+    #转化0-1规划至线性规划
     aeq=np.zeros((2*matrixShape,matrixShape**2))
     for i in range(matrixShape):
         aeq[i,i*matrixShape+0:matrixShape*(i+1)]=1#行限制
@@ -478,6 +480,7 @@ def hungarianAlgorithm(c)->'str':
     return res
 
 if __name__=='__main__':
+    #测试
     C = [-5,-8] 
     A = [[1,1],[5,9]]
     bu = [6,45]
