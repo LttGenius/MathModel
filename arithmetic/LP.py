@@ -7,7 +7,7 @@ Arithmetic:
     Integer LP:
         分支定界法 brandBoundLP
         割平面法 cuttingPlaneApproach
-        匈牙利法 
+        匈牙利法 hungarianAlgorithm
 """
 from scipy.optimize import linprog
 import sympy
@@ -350,15 +350,15 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,
     simplexTable=np.hstack((au,np.eye(len(au))))
     simplexTable=np.array(sympy.Matrix(simplexTable).rref()[0].tolist())
     simplexTable=np.hstack((simplexTable,res.x.reshape(res.x.shape[0],1)))
-    """
-    矩阵形式(初等变化之后):
-    array:[[1,0,0,...,a11,a12,a13,b1]
-           [0,1,0,...,a21,a22,a23,b2]
-           [0,0,1,...,a31,a32,a33,b3]
-           [0,0,0,...,a41,a42,a43,b4]
-           ...
-           [0,0,...,1,an1,an2,an3,bn]]
-    """
+
+    #矩阵形式(初等变化之后):
+    #array:[[1,0,0,...,a11,a12,a13,b1]
+    #       [0,1,0,...,a21,a22,a23,b2]
+    #       [0,0,1,...,a31,a32,a33,b3]
+    #       [0,0,0,...,a41,a42,a43,b4]
+    #       ...
+    #       [0,0,...,1,an1,an2,an3,bn]]
+
     while not all(((x-np.floor(x))<limitT or (np.ceil(x)-x)<limitT) for x in res.x[0:xposition]):
         #寻找最小小数行作为添加条件行
         #最简矩阵 保证为二维
@@ -392,6 +392,90 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,
     if putValue:
         res.fun*=-1
     return res
+##########匈牙利法#########
+"""
+Model:
+    Min(Max) C X 
+    S.T.
+        None
+算法实用于0-1规划，C需要符合规划矩阵:
+        b1  b2  b3 ... bn
+    a1 c11 c12 c12 ... c1n
+    a2 c21 c22 c23 ... c2n
+    a3 c31 c32 c33 ... c3n
+    ...    
+    an cn1 cn2 cn3 ... cnn
+c为其中Cij组成的矩阵。
+例如:a1~an表示工人，b1~bn表示任务，一个工人只能安排一个任务，一个任务只能安排一个工人。
+     对每个工人有Xi =  1:安排第i个任务
+                      0:不安排第i个任务
+    因此每一行每一列对应的x上只有一个为1
+"""
+def hungarianAlgorithm(c)->'str':
+    """
+    Model:
+    Min(Max) C X 
+    S.T.
+        None
+    算法实用于0-1规划，C需要符合规划矩阵:
+            b1  b2  b3 ... bn
+        a1 c11 c12 c12 ... c1n
+        a2 c21 c22 c23 ... c2n
+        a3 c31 c32 c33 ... c3n
+        ...    
+        an cn1 cn2 cn3 ... cnn
+    c为其中Cij组成的矩阵。
+
+    C:二维数组
+
+        Return:(形式如linprog)
+    x:在满足约束的情况下将目标函数最小化的决策变量的值
+        数据类型:一维数组
+    fun:目标函数的最佳值（c T x）
+        数据类型:浮点数
+    slack:不等式约束的松弛值（名义上为正值）bub-Aub x
+        数据类型:一维数组
+    con:等式约束的残差（名义上为零）beq-Aeq x
+        数据类型:一维数组
+    success:当算法成功找到最佳解决方案时为 True
+        数据类型:布尔值
+    status:表示算法退出状态的整数
+        数据类型:整数
+        0 : 优化成功终止
+        1 : 达到了迭代限制
+        2 : 问题似乎不可行
+        3 : 问题似乎是不收敛
+        4 : 遇到数值困难
+    nit:在所有阶段中执行的迭代总数
+        数据类型:整数
+    message:算法退出状态的字符串描述符
+        数据类型:字符串
+    """
+    matrixShape=[len(c),len(c[0])]
+    #转化为方阵
+    if matrixShape[0]>matrixShape[1]:#行数大于列数
+        C=np.array(c)
+        C=np.hstack((C,np.zeros((matrixShape[0],matrixShape[0]-matrixShape[1]))))
+        matrixShape=matrixShape[0]
+    elif matrixShape[0]<matrixShape[1]:#行数小于列数
+        C=np.array(c)
+        C=np.vstack((C,np.zeros((matrixShape[1]-matrixShape[0],matrixShape[1]))))
+        matrixShape=matrixShape[1]
+    else:
+        C=np.array(c)
+        matrixShape=matrixShape[0]
+    C=C.flatten().tolist()
+    aeq=np.zeros((2*matrixShape,matrixShape**2))
+    for i in range(matrixShape):
+        aeq[i,i*matrixShape+0:matrixShape*(i+1)]=1#行限制
+        aeq[i+matrixShape,[j for j in range(i,matrixShape**2,matrixShape)]]=1#列限制
+    beq=np.ones((1,2*matrixShape))[0]
+    res=linprog(C,A_eq=aeq,b_eq=beq,bounds=[[0,1] for _ in range(matrixShape**2)])
+    #接下来转化x
+    res.x=res.x.reshape(matrixShape,matrixShape)
+    res.x[res.x<=1e-7]=0
+    res.x[res.x>0]=1
+    return res
 
 if __name__=='__main__':
     C = [-5,-8] 
@@ -401,7 +485,8 @@ if __name__=='__main__':
     X1_bounds = [0,float('inf')]
     #test=np.array([1.33333,1.33333,2,3,4])
     #res=Com_pre(test)
-    res=cuttingPlaneApproach(C,A,bu,b=(X0_bounds,X1_bounds))
+    #res=cuttingPlaneApproach(C,A,bu,b=(X0_bounds,X1_bounds))
+    res=hungarianAlgorithm([[3,8,2,10,3],[8,7,2,9,7],[6,4,2,7,5],[8,4,3,2,5],[9,10,6,8,10]])
     print(res)
     
 
