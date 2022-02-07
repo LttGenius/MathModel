@@ -55,11 +55,11 @@ Model:
     需要保证X>=0
     Max和Min由参数putValue确认:当c对应是Max时,putValue应为True,否则为false
     putForm:True时输出表格,否则只输出x和最优值
-1）当所有非基变量的检验数都小于零，则原问题有唯一最优解；
-2）当所有非基变量的检验数都小于等于零，注意有等于零的检验数，则有无穷多个最优解；
-3）当任意一个大于零的非基变量的检验数，其对应的ajk（求最小比值的分母）都小于等于零时，则原问题有无界解；
-4）添加人工变量后的问题，当所有非基变量的检验数都小于等于零，而基变量中有人工变量时，则原问题无可行解。
-PS:情况1和情况2并未区分，如需分别请将参数putForm设置为True，查看表格分别
+1)当所有非基变量的检验数都小于零,则原问题有唯一最优解;
+2)当所有非基变量的检验数都小于等于零,注意有等于零的检验数,则有无穷多个最优解;
+3)当任意一个大于零的非基变量的检验数,其对应的ajk(求最小比值的分母)都小于等于零时,则原问题有无界解;
+4)添加人工变量后的问题,当所有非基变量的检验数都小于等于零,而基变量中有人工变量时,则原问题无可行解。
+PS:情况1和情况2并未区分,如需分别请将参数putForm设置为True,查看表格分别
 """
 def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False)->'str':
     """
@@ -69,13 +69,13 @@ def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False)->'str':
         S.T.
             Au @ X <= Bu
             X >= 0
-    C:一维数组，线性规划中需要求值的函数系数
-    Au:二维数组，不等式的系数
-    Bu:一维数组，不等式的值
-    putValue=True:模型是求最大值，会对C进行自动求负
+    C:一维数组,线性规划中需要求值的函数系数
+    Au:二维数组,不等式的系数
+    Bu:一维数组,不等式的值
+    putValue=True:模型是求最大值,会对C进行自动求负
              False:模型求最小值
     putForm=True:输出单纯形最优表格矩阵
-            False:不输出，默认不输出
+            False:不输出,默认不输出
     Return:如果putForm为False:
             [x,fun]
            如果putForm为True:
@@ -107,7 +107,7 @@ def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False)->'str':
     simplexMatrix=np.vstack((simplexMatrix,temp))
     #创立各种系数检验列表
     """
-    cherkoutMatrix_X:array[Aj,...,An] 基变量，初始挑选为单位矩阵
+    cherkoutMatrix_X:array[Aj,...,An] 基变量,初始挑选为单位矩阵
     checkoutMatrix_6:array[g0,..,gn] 非基变量检验数
     """
     checkoutMatrix_X=np.array([i for i in range(len(c)+1,len(c)+1+length)])
@@ -156,7 +156,7 @@ Model:
         AuX<=Bu
         AeqX=Beq
         lb<=X<=ub(b=(lb,ub))
-putValue=True:模型是求最大值，会对C进行自动求负
+putValue=True:模型是求最大值,会对C进行自动求负
          False:模型求最小值
 limitT:误差阈值
 """
@@ -169,23 +169,23 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
             Au @ X <= Bu
             Aeq @ X=Beq
             lb <= X <= ub
-    C:一维数组，线性规划中需要求值的函数系数
-    Au:二维数组，不等式的系数
-    Bu:一维数组，不等式的值
-    Aeq:二维数组，等式的系数
-    Beq:一维数组，等式的值
+    C:一维数组,线性规划中需要求值的函数系数
+    Au:二维数组,不等式的系数
+    Bu:一维数组,不等式的值
+    Aeq:二维数组,等式的系数
+    Beq:一维数组,等式的值
     b:未知数的上下限 b=(lb,ub)
-    putValue=True:模型是求最大值，会对C进行自动求负
+    putValue=True:模型是求最大值,会对C进行自动求负
              False:模型求最小值
     limitT:误差阈值,默认为1e-5
     Return:(形式如linprog)
     x:在满足约束的情况下将目标函数最小化的决策变量的值
         数据类型:一维数组
-    fun:目标函数的最佳值（c T x）
+    fun:目标函数的最佳值(c T x)
         数据类型:浮点数
-    slack:不等式约束的松弛值（名义上为正值）bub-Aub x
+    slack:不等式约束的松弛值(名义上为正值)bub-Aub x
         数据类型:一维数组
-    con:等式约束的残差（名义上为零）beq-Aeq x
+    con:等式约束的残差(名义上为零)beq-Aeq x
         数据类型:一维数组
     success:当算法成功找到最佳解决方案时为 True
         数据类型:布尔值
@@ -245,7 +245,7 @@ def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue
                 if res.fun<limitv[1]:#定界
                     limitv[1]=res.fun
                     optimalValue=res
-            else:#有小数，开始分支
+            else:#有小数,开始分支
                 if res.fun>limitv[1]:#减支
                     continue
                 i=0
@@ -280,10 +280,10 @@ Model:
         AuX<=Bu
         AeqX=Beq
         lb<=X<=ub(b=(lb,ub))
-putValue=True:模型是求最大值，会对C进行自动求负
+putValue=True:模型是求最大值,会对C进行自动求负
          False:模型求最小值
 limitT:误差阈值
-PS:半成品，依然有bug需要完善，部分测试不通过
+PS:半成品,依然有bug需要完善,部分测试不通过
     还需完成只有等式约束情况
 """
 def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,putValue=False)->'str':
@@ -295,23 +295,23 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,
             Au @ X <= Bu
             Aeq @ X=Beq
             lb <= X <= ub
-    C:一维数组，线性规划中需要求值的函数系数
-    Au:二维数组，不等式的系数
-    Bu:一维数组，不等式的值
-    Aeq:二维数组，等式的系数
-    Beq:一维数组，等式的值
+    C:一维数组,线性规划中需要求值的函数系数
+    Au:二维数组,不等式的系数
+    Bu:一维数组,不等式的值
+    Aeq:二维数组,等式的系数
+    Beq:一维数组,等式的值
     b:未知数的上下限 b=(lb,ub)
-    putValue=True:模型是求最大值，会对C进行自动求负
+    putValue=True:模型是求最大值,会对C进行自动求负
              False:模型求最小值
     limitT:误差阈值,默认为1e-5
     Return:(形式如linprog)
     x:在满足约束的情况下将目标函数最小化的决策变量的值
         数据类型:一维数组
-    fun:目标函数的最佳值（c T x）
+    fun:目标函数的最佳值(c T x)
         数据类型:浮点数
-    slack:不等式约束的松弛值（名义上为正值）bub-Aub x
+    slack:不等式约束的松弛值(名义上为正值)bub-Aub x
         数据类型:一维数组
-    con:等式约束的残差（名义上为零）beq-Aeq x
+    con:等式约束的残差(名义上为零)beq-Aeq x
         数据类型:一维数组
     success:当算法成功找到最佳解决方案时为 True
         数据类型:布尔值
@@ -345,7 +345,7 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,
     """
     #构建初始矩阵
     """
-    PS:编写割平面时还未完成单纯形算法，采用linprog求解，如果有解并且解不为整数，构建矩阵模拟单纯形法矩阵
+    PS:编写割平面时还未完成单纯形算法,采用linprog求解,如果有解并且解不为整数,构建矩阵模拟单纯形法矩阵
     """
     simplexTable=np.hstack((au,np.eye(len(au))))
     simplexTable=np.array(sympy.Matrix(simplexTable).rref()[0].tolist())
@@ -387,7 +387,7 @@ def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,
         simplexTable=np.vstack((copySimplexTable,updateMatrix_newLine))#添加新的不等式
         temp=[[0] for _ in range(len(simplexTable))]
         temp[-1]=[1]
-        simplexTable=np.hstack((simplexTable,temp))#将不等式转化为等式，此时矩阵为线性规划之后更新的模拟单纯形法矩阵
+        simplexTable=np.hstack((simplexTable,temp))#将不等式转化为等式,此时矩阵为线性规划之后更新的模拟单纯形法矩阵
         if not res.success:return res
     if putValue:
         res.fun*=-1
@@ -399,7 +399,7 @@ Model:
     Min(Max) C X 
     S.T.
         None
-算法实用于0-1规划，C需要符合规划矩阵:
+算法实用于0-1规划,C需要符合规划矩阵:
         b1  b2  b3 ... bn
     a1 c11 c12 c12 ... c1n
     a2 c21 c22 c23 ... c2n
@@ -407,7 +407,7 @@ Model:
     ...    
     an cn1 cn2 cn3 ... cnn
 c为其中Cij组成的矩阵。
-例如:a1~an表示工人，b1~bn表示任务，一个工人只能安排一个任务，一个任务只能安排一个工人。
+例如:a1~an表示工人,b1~bn表示任务,一个工人只能安排一个任务,一个任务只能安排一个工人。
      对每个工人有Xi =  1:安排第i个任务
                       0:不安排第i个任务
     因此每一行每一列对应的x上只有一个为1
@@ -418,7 +418,7 @@ def hungarianAlgorithm(c)->'str':
     Min(Max) C X 
     S.T.
         None
-    算法实用于0-1规划，C需要符合规划矩阵:
+    算法实用于0-1规划,C需要符合规划矩阵:
             b1  b2  b3 ... bn
         a1 c11 c12 c12 ... c1n
         a2 c21 c22 c23 ... c2n
@@ -432,11 +432,11 @@ def hungarianAlgorithm(c)->'str':
         Return:(形式如linprog)
     x:在满足约束的情况下将目标函数最小化的决策变量的值
         数据类型:一维数组
-    fun:目标函数的最佳值（c T x）
+    fun:目标函数的最佳值(c T x)
         数据类型:浮点数
-    slack:不等式约束的松弛值（名义上为正值）bub-Aub x
+    slack:不等式约束的松弛值(名义上为正值)bub-Aub x
         数据类型:一维数组
-    con:等式约束的残差（名义上为零）beq-Aeq x
+    con:等式约束的残差(名义上为零)beq-Aeq x
         数据类型:一维数组
     success:当算法成功找到最佳解决方案时为 True
         数据类型:布尔值
