@@ -9,6 +9,7 @@ Arithmetic:
         割平面法 cuttingPlaneApproach
         匈牙利法 hungarianAlgorithm
 """
+from typing import List
 from scipy.optimize import linprog
 import sympy
 import numpy as np
@@ -17,7 +18,7 @@ import copy
 带精度比较函数
     需要保证传入为一维
 """
-def Com_pre(comObject,minOrMax=False,returnValue='value',limitPrecision=1e-5)->'str':
+def Com_pre(comObject:np.ndarray,minOrMax=False,returnValue='value',limitPrecision=1e-5):
     """
     内置比较函数
     comObject:一维数组,否则最后结果可能会出错
@@ -61,7 +62,7 @@ Model:
 4)添加人工变量后的问题,当所有非基变量的检验数都小于等于零,而基变量中有人工变量时,则原问题无可行解。
 PS:情况1和情况2并未区分,如需分别请将参数putForm设置为True,查看表格分别
 """
-def simplexMethod(c,Au=None,Bu=None,putValue=False,putForm=False)->'str':
+def simplexMethod(c:np.ndarray,Au:np.ndarray=None,Bu:np.ndarray=None,putValue=False,putForm=False):
     """
     线性规划算法之单纯形法
     Model:
@@ -160,7 +161,7 @@ putValue=True:模型是求最大值,会对C进行自动求负
          False:模型求最小值
 limitT:误差阈值
 """
-def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False)->'str':
+def brandBoundLP(C,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-7,putValue=False):
     """
     整数线性规划算法之分支定界法
     Model:
@@ -286,7 +287,7 @@ limitT:误差阈值
 PS:半成品,依然有bug需要完善,部分测试不通过
     还需完成只有等式约束情况
 """
-def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,putValue=False)->'str':
+def cuttingPlaneApproach(c,Au=None,Bu=None,Aeq=None,Beq=None,b=None,limitT=1e-5,putValue=False):
     """
     整数线性规划算法之割平面法
     Model:
@@ -412,7 +413,7 @@ c为其中Cij组成的矩阵。
                       0:不安排第i个任务
     因此每一行每一列对应的x上只有一个为1
 """
-def hungarianAlgorithm(c)->'str':
+def hungarianAlgorithm(c):
     """
     Model:
     Min(Max) C X 
