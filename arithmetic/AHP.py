@@ -6,9 +6,8 @@ import numpy as np
 """
 层次分析法(AHP):
 """
-def ahp(A:dict,B:dict,returnMatrix=False,allReal=False):
+def ahp(a:np,B:dict,returnMatrix=False,allReal=False):
     RI=[0,0,0.52,0.89,1.12,1.26,1.36,1.41,1.46,1.49,1.52,1.54,1.56,1.58,1.59,1.60,1.61,1.615,1.62,1.63]
-    a=np.array(list(A.values()))
     n=a.shape[0]
     eigenvalues,featurevector=np.linalg.eig(a)
     eigenvalue=max(eigenvalues)
@@ -44,7 +43,8 @@ def ahp(A:dict,B:dict,returnMatrix=False,allReal=False):
 
 
 if __name__ == '__main__':
-    A={1:[1,3,5],2:[0.33,1,3],3:[0.2,0.33,1]}
+    A=np.array([[1,1/2,4,3,3],[1,1,7,5,5],[1,1,1,1/2,1/3],[1,1,1,1,1],[1,1,1,1,1]])
+    A+=1/A.T-np.ones(A.shape)
     B={1:[[1,2],[0.5,1]],2:[[1,2],[0.5,1]],3:[[1,2],[0.5,1]]}
     res=ahp(A,B,allReal=True)
     print(res)
