@@ -3,10 +3,14 @@
     grayPrediction
 """
 import numpy as np
+"""
+暂时实现GM(1,1)
+"""
 def grayPrediction(initData:np.array,alpha=0.5,checkWay='re'):
     """
     灰色预测模型算法GM(1,1):
-        
+    checkWay:'re';'ru';'Both'
+    return:(检验表,预测函数名)
     """
     #参数检验
     inPara=('re','ru','Both')
@@ -43,7 +47,8 @@ def grayPrediction(initData:np.array,alpha=0.5,checkWay='re'):
                 return initData[0]
             else:
                 return (initData[0]-U[1]/U[0])*np.exp(-U[0]*k)+U[1]/U[0]-initData[0]
-        return (initData[0]-U[1]/U[0])*np.exp(-U[0]*k)+U[1]/U[0]-((initData[0]-U[1]/U[0])*np.exp(-U[0]*(k-1))+U[1]/U[0])
+        return (1-np.exp(U[0]))*(initData[0]-U[1]/U[0])*np.exp(-U[0]*k)
+        #(initData[0]-U[1]/U[0])*np.exp(-U[0]*k)-(initData[0]-U[1]/U[0])*np.exp(-U[0]*(k-1))
     # 3 检验预测值
     checkList={'re':[],'ru':None}
         #残差检验
@@ -61,4 +66,4 @@ def grayPrediction(initData:np.array,alpha=0.5,checkWay='re'):
 if __name__ == '__main__':
     Y=np.array([71.1,72.4,72.4,72.1,71.4,72,71.6])
     res=grayPrediction(Y)
-    print(res[1])
+    print(res[1](4))
